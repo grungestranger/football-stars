@@ -1,14 +1,24 @@
-
-// Fonts
-@import url('https://fonts.googleapis.com/css?family=Nunito');
-
-// Variables
-@import 'variables';
-
-// Bootstrap
-@import '~bootstrap/scss/bootstrap';
-
-.navbar-laravel {
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+.display-none {
+    display: none;
+}
+#stdElements {
+    display: none;
+}
+#challengesFrom {
+    float: left;
+}
+#challengesTo {
+    float: right;
+}
+.user .status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #ccc;
+}
+.user.online .status {
+    background: #00ff00;
+}
+.user.match .status {
+    background: #0000ff;
 }

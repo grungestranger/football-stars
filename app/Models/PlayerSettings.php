@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlayerSettings extends Model
 {
-	use TableName;
-
     /**
      * Indicates if the model should be timestamped.
      *

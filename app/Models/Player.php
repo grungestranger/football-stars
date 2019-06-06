@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Player extends Model
 {
-	use TableName;
-
     /**
      * Indicates if the model should be timestamped.
      *

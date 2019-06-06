@@ -1,42 +1,26 @@
 <?php
 
-if (! function_exists('lockTables')) {
+use Illuminate\Database\Eloquent\Model;
+
+if (! function_exists('lockForUpdate')) {
     /**
-     * Execute a Closure within locking tables and "transaction".
+     * Execute a Closure within locking one row for update.
      *
-     * @param  array $tables [['table1', 'w'], ['table2', 'r'], ...]
      * @param  Closure $callback
+     * @param  Model[] $models
      */
-    function lockTables(array $tables, Closure $callback)
+    function lockForUpdate(Closure $callback, ...$models)
     {
-        $types = [
-            'r' => 'READ',
-            'w' => 'WRITE',
-        ];
+        $model = array_first($models);
 
-        $tables = array_map(function ($v) use ($types) {
-            return $v[0] . ' ' . $types[$v[1]];
-        }, $tables);
+        $keys = array_map(function (Model $value) {
+            return $value->getKey();
+        }, $models);
 
-        DB::unprepared('LOCK TABLES ' . implode(', ', $tables));
-        DB::statement('SET AUTOCOMMIT = 0');
+        DB::transaction(function () use ($model, $keys, $callback) {
+            $model->whereIn($model->getKeyName(), $keys)->lockForUpdate()->get();
 
-        $exception = false;
-
-        try {
             $callback();
-
-            DB::statement('COMMIT');
-        } catch (Exception $e) {
-            DB::statement('ROLLBACK');
-            $exception = $e;
-        }
-
-        DB::statement('SET AUTOCOMMIT = 1');
-        DB::unprepared('UNLOCK TABLES');
-
-        if ($exception) {
-            throw $exception;
-        }
+        });
     }
 }
