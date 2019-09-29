@@ -11,16 +11,16 @@
 |
 */
 
-Route::view('/', 'main')->middleware('main.page', 'verified', 'verified.scope');
+Route::view('/', 'main')->middleware('main.page', 'verified');
 
 Auth::routes(['verify' => true]);
 Route::get('/login', function () { abort(404); });
 
-Route::group(['middleware' => ['verified', 'verified.scope']], function () {
+Route::group(['middleware' => 'verified'], function () {
     Route::get('/team', 'TeamController@index');
-    Route::post('/team/save', 'TeamController@save');
-    Route::post('/team/save-as', 'TeamController@saveAs');
-    Route::post('/team/remove', 'TeamController@remove');
+    Route::post('/team/save-schema', 'TeamController@saveSchema');
+    Route::post('/team/create-schema', 'TeamController@createSchema');
+    Route::post('/team/remove-schema', 'TeamController@removeSchema');
     Route::post('/create-challenge', 'AppController@createChallenge');
     Route::post('/remove-challenge', 'AppController@removeChallenge');
     Route::post('/play', 'AppController@play');

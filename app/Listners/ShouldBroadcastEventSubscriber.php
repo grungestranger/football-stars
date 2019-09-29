@@ -8,6 +8,7 @@ use App\Events\UserConnected;
 use App\Events\UserDisconnected;
 use App\Events\ChallengeCreated;
 use App\Events\ChallengeRemoved;
+use App\Events\MatchCreated;
 
 class ShouldBroadcastEventSubscriber
 {
@@ -64,17 +65,26 @@ class ShouldBroadcastEventSubscriber
     public function onChallengeRemoved(ChallengeRemoved $event) {
         if ($event->user->is_man) {
             Redis::publish('user:' . $event->user->id, json_encode([
-                'event'  => 'fromChallengeRemoved',
+                'event'  => 'challengeRemoved',
                 'userId' => $event->opponent->id,
             ]));
         }
 
         if ($event->opponent->is_man) {
             Redis::publish('user:' . $event->opponent->id, json_encode([
-                'event'  => 'toChallengeRemoved',
+                'event'  => 'challengeRemoved',
                 'userId' => $event->user->id,
             ]));
         }
+    }
+
+    /**
+     * Handle starting of match.
+     *
+     * @param MatchCreated $event
+     */
+    public function onMatchCreated(MatchCreated $event) {
+        // todo
     }
 
     /**
@@ -91,5 +101,7 @@ class ShouldBroadcastEventSubscriber
         $events->listen(ChallengeCreated::class, static::class . '@onChallengeCreated');
 
         $events->listen(ChallengeRemoved::class, static::class . '@onChallengeRemoved');
+
+        $events->listen(MatchCreated::class, static::class . '@onMatchCreated');
     }
 }

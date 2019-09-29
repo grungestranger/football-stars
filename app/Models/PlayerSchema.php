@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserSchema extends Model
+class PlayerSchema extends Model
 {
     /**
      * Indicates if the model should be timestamped.
@@ -18,5 +18,14 @@ class UserSchema extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'settings'];
+    protected $fillable = ['schema_id', 'settings'];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'settings' => 'object',
+    ];
 }

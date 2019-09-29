@@ -35,6 +35,22 @@ dataLoaders.push({
     });
   }
 });
+/**
+ * Add socket handlers.
+ */
+
+socketHandlers.push({
+  events: ['fromChallengeCreated', 'toChallengeCreated'],
+  handler: function handler(data) {
+    $('#users .user[data-id="' + data.user.id + '"] .create-challenge').hide();
+  }
+});
+socketHandlers.push({
+  events: ['challengeRemoved'],
+  handler: function handler(data) {
+    $('#users .user[data-id="' + data.userId + '"] .create-challenge').show();
+  }
+});
 $(function () {
   /**
    * Create a challenge.
@@ -44,9 +60,7 @@ $(function () {
     $.post('/create-challenge', {
       user_id: $user.data('id')
     }, function () {
-      $user.children('.create-challenge').hide(); // let $opponent = $user.clone().prependTo('#fromChallenges');
-      //
-      // $opponent.children('.create-challenge').hide();
+      $user.children('.create-challenge').hide();
     }).fail(function (data) {});
     return false;
   });

@@ -1,10 +1,12 @@
 {
-    "/js/app.js": "/js/app.js?id=b3053d80cb8b560432ee",
-    "/js/bootstrap.js": "/js/bootstrap.js?id=5b72696fc7a9b7dfae58",
+    "/js/app.js": "/js/app.js?id=a59ef1131497fea5eb64",
+    "/js/bootstrap.js": "/js/bootstrap.js?id=b7dce24b58673745fca5",
     "/css/auth.css": "/css/auth.css?id=d41d8cd98f00b204e980",
-    "/css/app.css": "/css/app.css?id=5d4dbfdf6cc8bdb0506c",
+    "/css/app.css": "/css/app.css?id=ead71dfccc3e347b46df",
     "/css/main.css": "/css/main.css?id=d41d8cd98f00b204e980",
-    "/js/main.js": "/js/main.js?id=c21628d4e6519f017717",
-    "/js/manifest.js": "/js/manifest.js?id=844cdbfe9e6b6b56ae8f",
-    "/js/vendor.js": "/js/vendor.js?id=8e093978cce3f343b2b7"
+    "/css/team.css": "/css/team.css?id=686d8e9e87ae00cbd75c",
+    "/js/main.js": "/js/main.js?id=5e6cf5a94e195507124e",
+    "/js/manifest.js": "/js/manifest.js?id=628b6c021bf632771e19",
+    "/js/team.js": "/js/team.js?id=e4eed88074932a491e39",
+    "/js/vendor.js": "/js/vendor.js?id=d9bdc1f64da25775157d"
 }

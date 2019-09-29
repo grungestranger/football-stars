@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
-use Illuminate\Validation\ValidationException;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
+
+    const TYPE_BOT = 'bot';
+    const TYPE_MAN = 'man';
 
     /**
      * The attributes that are mass assignable.
@@ -38,13 +41,27 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = ['is_match'];
 
     /**
+     * The "booting" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope('verified', function (Builder $builder) {
+            $builder->whereNotNull('email_verified_at');
+        });
+    }
+
+    /**
      * Get the relation to schemas.
      *
      * @return HasMany
      */
     public function schemas(): HasMany
     {
-        return $this->hasMany(UserSchema::class)->orderBy('id');
+        return $this->hasMany(Schema::class)->orderBy('id');
     }
 
     /**
@@ -55,94 +72,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function players(): HasMany
     {
         return $this->hasMany(Player::class);
-    }
-
-    /**
-     * Create default schema and players.
-     */
-    public function createTeam()
-    {
-        lockForUpdate(function () {
-            if ($this->schemas()->first()) {
-                throw ValidationException::withMessages([trans('common.team_already_exists')]);
-            }
-
-            $schema = $this->schemas()->create([
-                'name'     => config('schema.defaultName'),
-                'settings' => json_encode(config('schema.defaultSettings')),
-            ]);
-
-            $roles    = array_flip(config('player.roles'));
-            $names    = config('player.names');
-            $surnames = config('player.surnames');
-
-            $reserveIndex = 0;
-
-            foreach (config('player.roles_data') as $key => $val) {
-                $defaultPosCount = 0;
-
-                for ($i = 0; $i < $val['count']; $i++) {
-                    // Player.
-
-                    $data = [
-                        'name' => $names[array_rand($names)] . ' ' . $surnames[array_rand($surnames)],
-                    ];
-
-                    foreach ($val['dataRange'] as $key1 => $val1) {
-                        $data[$key1] = rand($val1[0], $val1[1]);
-                    }
-
-                    $player = $this->players()->create($data);
-
-                    // Roles.
-
-                    $data = [
-                        [
-                            'player_id' => $player->id,
-                            'role_id'   => $roles[$key],
-                        ],
-                    ];
-
-                    $addRolesCount = rand(0, config('player.add_roles_max_count'));
-                    $addRoles      = $val['addRoles'];
-
-                    while ($addRolesCount && count($addRoles)) {
-                        $addRoleKey = array_rand($addRoles);
-
-                        $data[] = [
-                            'player_id' => $player->id,
-                            'role_id'   => $roles[$addRoles[$addRoleKey]],
-                        ];
-
-                        unset($addRoles[$addRoleKey]);
-                        $addRolesCount--;
-                    }
-
-                    $player->roles()->insert($data);
-
-                    // Settings.
-
-                    if (isset($val['defaultPos']) && $defaultPosCount < count($val['defaultPos'])) {
-                        $defSet = [
-                            'position'     => $val['defaultPos'][$defaultPosCount],
-                            'reserveIndex' => NULL,
-                        ];
-                        $defaultPosCount++;
-                    } else {
-                        $defSet = [
-                            'position'     => NULL,
-                            'reserveIndex' => $reserveIndex,
-                        ];
-                        $reserveIndex++;
-                    }
-
-                    $player->settings()->create([
-                        'schema_id' => $schema->id,
-                        'settings'  => json_encode($defSet),
-                    ]);
-                }
-            }
-        }, $this);
     }
 
     /**
@@ -230,7 +159,23 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getIsManAttribute(): bool
     {
-        return $this->type == 'man';
+        return $this->type == static::TYPE_MAN;
+    }
+
+    /**
+     * @return Schema|null
+     */
+    public function getCurrentSchemaAttribute(): ?Schema
+    {
+        if ($this->last_schema_id) {
+            $schema = $this->schemas()->find($this->last_schema_id);
+
+            if ($schema) {
+                return $schema;
+            }
+        }
+
+        return $this->schemas()->first();
     }
 
     /**
@@ -238,7 +183,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public static function resetOnline()
     {
-        static::where([['type', 'man'], ['online', '!=', 0]])->update(['online' => 0]);
+        static::where([['type', static::TYPE_MAN], ['online', '!=', 0]])->update(['online' => 0]);
     }
 
     /**
@@ -260,42 +205,5 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->last_online_at = Carbon::now()->toDateTimeString();
 
         $this->save();
-    }
-
-    /**
-     * Create a challenge.
-     *
-     * @param self $opponent
-     */
-    public function createChallenge(self $opponent)
-    {
-        lockForUpdate(function () use ($opponent) {
-            if (
-                $this->fromChallenges()->where('to_user_id', $opponent->id)->exists()
-                || $this->toChallenges()->where('from_user_id', $opponent->id)->exists()
-            ) {
-                throw ValidationException::withMessages([trans('common.challenge_already_exists')]);
-            }
-
-            $this->fromchallenges()->create(['to_user_id' => $opponent->id]);
-        }, $this, $opponent);
-    }
-
-    /**
-     * Remove the challenge.
-     *
-     * @param self $opponent
-     */
-    public function removeChallenge(self $opponent)
-    {
-        lockForUpdate(function () use ($opponent) {
-            if ($this->fromChallenges()->where('to_user_id', $opponent->id)->exists()) {
-                $this->fromChallenges()->where('to_user_id', $opponent->id)->delete();
-            } elseif ($this->toChallenges()->where('from_user_id', $opponent->id)->exists()) {
-                $this->toChallenges()->where('from_user_id', $opponent->id)->delete();
-            } else {
-                throw ValidationException::withMessages([trans('common.challenge_is_not_found')]);
-            }
-        }, $this, $opponent);
     }
 }

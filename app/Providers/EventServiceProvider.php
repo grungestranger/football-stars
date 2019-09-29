@@ -8,6 +8,8 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use Illuminate\Auth\Events\Verified;
 use App\Listeners\CreateTeamForVerifiedUser;
 use App\Listeners\ShouldBroadcastEventSubscriber;
+use App\Events\MatchCreated;
+use App\Listeners\StartMatchJob;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         Verified::class => [
             CreateTeamForVerifiedUser::class,
+        ],
+        MatchCreated::class => [
+            StartMatchJob::class,
         ],
     ];
 

@@ -10,9 +10,9 @@ return [
         ],
     ],
 
-    'defaultName' => 'Настройки 1',
+    'default_name' => 'Настройки 1',
 
-    'defaultSettings' => [
+    'default_settings' => [
     	'tactic' => 'balance',
     ],
 ];

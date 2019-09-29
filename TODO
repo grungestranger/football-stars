@@ -1,0 +1,5 @@
+Restart server.js when RedisSubscribe goes down.
+
+? Add id to challenges table. Use it in removeChallenge, createMatch.
+
+? Use $this->validate() in TeamController.

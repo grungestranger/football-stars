@@ -25,22 +25,22 @@ class Player extends Model
     ];
 
     /**
-     * Get the relation to roles.
+     * Get the relation to player_roles.
      *
      * @return HasMany
      */
-    public function roles(): HasMany
+    public function playerRoles(): HasMany
     {
-        return $this->hasMany(PlayerRoles::class);
+        return $this->hasMany(PlayerRole::class);
     }
 
     /**
-     * Get the relation to settings.
+     * Get the relation to player_schemas.
      *
      * @return HasMany
      */
-    public function settings(): HasMany
+    public function playerSchemas(): HasMany
     {
-        return $this->hasMany(PlayerSettings::class);
+        return $this->hasMany(PlayerSchema::class);
     }
 }

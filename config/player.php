@@ -91,8 +91,8 @@ return [
     'roles_data' => [
         'Вр' => [
             'count' => 2,
-            'addRoles' => [],
-            'dataRange' => [
+            'additional_roles' => [],
+            'data_range' => [
                 'speed' => [10, 50],
                 'acceleration' => [10, 50],
                 'coordination' => [30, 60],
@@ -103,7 +103,7 @@ return [
                 'in_gate' => [30, 60],
                 'on_out' => [30, 60],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 71,
                     'y' => 300,
@@ -112,8 +112,8 @@ return [
         ],
         'КЗЛ' => [
             'count' => 1,
-            'addRoles' => ['ЦЗ', 'КЗП', 'КПЛ'],
-            'dataRange' => [
+            'additional_roles' => ['ЦЗ', 'КЗП', 'КПЛ'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -124,7 +124,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 214,
                     'y' => 525,
@@ -133,8 +133,8 @@ return [
         ],
         'ЦЗ' => [
             'count' => 3,
-            'addRoles' => ['КЗЛ', 'КЗП', 'ОП'],
-            'dataRange' => [
+            'additional_roles' => ['КЗЛ', 'КЗП', 'ОП'],
+            'data_range' => [
                 'speed' => [10, 50],
                 'acceleration' => [10, 50],
                 'coordination' => [30, 60],
@@ -145,7 +145,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 214,
                     'y' => 375,
@@ -158,8 +158,8 @@ return [
         ],
         'КЗП' => [
             'count' => 1,
-            'addRoles' => ['ЦЗ', 'КЗЛ', 'КПП'],
-            'dataRange' => [
+            'additional_roles' => ['ЦЗ', 'КЗЛ', 'КПП'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -170,7 +170,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 214,
                     'y' => 75,
@@ -179,8 +179,8 @@ return [
         ],
         'ОП' => [
             'count' => 1,
-            'addRoles' => ['ЦЗ', 'ЦП'],
-            'dataRange' => [
+            'additional_roles' => ['ЦЗ', 'ЦП'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [10, 50],
                 'coordination' => [30, 60],
@@ -194,8 +194,8 @@ return [
         ],
         'КПЛ' => [
             'count' => 1,
-            'addRoles' => ['ЦП', 'КЗЛ', 'КПП'],
-            'dataRange' => [
+            'additional_roles' => ['ЦП', 'КЗЛ', 'КПП'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -206,7 +206,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 500,
                     'y' => 525,
@@ -215,8 +215,8 @@ return [
         ],
         'ЦП' => [
             'count' => 2,
-            'addRoles' => ['ОП', 'АП'],
-            'dataRange' => [
+            'additional_roles' => ['ОП', 'АП'],
+            'data_range' => [
                 'speed' => [20, 60],
                 'acceleration' => [20, 50],
                 'coordination' => [20, 60],
@@ -227,7 +227,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 500,
                     'y' => 375,
@@ -240,8 +240,8 @@ return [
         ],
         'КПП' => [
             'count' => 1,
-            'addRoles' => ['ЦП', 'КЗП', 'КПЛ'],
-            'dataRange' => [
+            'additional_roles' => ['ЦП', 'КЗП', 'КПЛ'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -252,7 +252,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 500,
                     'y' => 75,
@@ -261,8 +261,8 @@ return [
         ],
         'АП' => [
             'count' => 1,
-            'addRoles' => ['ЦП', 'ОФ'],
-            'dataRange' => [
+            'additional_roles' => ['ЦП', 'ОФ'],
+            'data_range' => [
                 'speed' => [20, 60],
                 'acceleration' => [20, 60],
                 'coordination' => [20, 60],
@@ -276,8 +276,8 @@ return [
         ],
         'ОФ' => [
             'count' => 1,
-            'addRoles' => ['ЦФ', 'АП'],
-            'dataRange' => [
+            'additional_roles' => ['ЦФ', 'АП'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -288,7 +288,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 786,
                     'y' => 300,
@@ -297,8 +297,8 @@ return [
         ],
         'КФЛ' => [
             'count' => 1,
-            'addRoles' => ['ЦФ', 'КПЛ', 'КФП'],
-            'dataRange' => [
+            'additional_roles' => ['ЦФ', 'КПЛ', 'КФП'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -312,8 +312,8 @@ return [
         ],
         'ЦФ' => [
             'count' => 1,
-            'addRoles' => ['ОФ'],
-            'dataRange' => [
+            'additional_roles' => ['ОФ'],
+            'data_range' => [
                 'speed' => [20, 60],
                 'acceleration' => [20, 60],
                 'coordination' => [20, 60],
@@ -324,7 +324,7 @@ return [
                 'in_gate' => [1, 10],
                 'on_out' => [1, 10],
             ],
-            'defaultPos' => [
+            'default_position' => [
                 [
                     'x' => 929,
                     'y' => 300,
@@ -333,8 +333,8 @@ return [
         ],
         'КФП' => [
             'count' => 1,
-            'addRoles' => ['ЦФ', 'КПП', 'КФЛ'],
-            'dataRange' => [
+            'additional_roles' => ['ЦФ', 'КПП', 'КФЛ'],
+            'data_range' => [
                 'speed' => [30, 60],
                 'acceleration' => [30, 60],
                 'coordination' => [30, 60],
@@ -357,7 +357,18 @@ return [
     |
     */
 
-    'add_roles_max_count' => 1,
+    'additional_roles_max_count' => 1,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Number of players on the field
+    |--------------------------------------------------------------------------
+    |
+    |
+    |
+    */
+
+    'on_field_count' => 11,
 
     /*
     |--------------------------------------------------------------------------

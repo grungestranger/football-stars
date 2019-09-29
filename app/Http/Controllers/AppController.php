@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use App\Events\ChallengeCreated;
 use App\Events\ChallengeRemoved;
+use App\Events\MatchCreated;
+use App\Services\ChallengeService;
+use App\Services\MatchService;
 
 class AppController extends Controller
 {
@@ -62,41 +65,44 @@ class AppController extends Controller
     }
 
     /**
-     * Remove the challenge.
+     * Create the challenge.
      *
+     * @param ChallengeService $challengeService
      * @param Request $request
      */
-    public function removeChallenge(Request $request)
+    public function createChallenge(Request $request, ChallengeService $challengeService)
     {
         $user     = auth()->user();
         $opponent = $this->getOpponent($user, $request);
 
-        $user->removeChallenge($opponent);
-
-        event(new ChallengeRemoved($user, $opponent));
-    }
-
-    /**
-     * Create a challenge.
-     *
-     * @param Request $request
-     */
-    public function createChallenge(Request $request)
-    {
-        $user     = auth()->user();
-        $opponent = $this->getOpponent($user, $request);
-
-        $user->createChallenge($opponent);
+        $challengeService->createChallenge($user, $opponent);
 
         event(new ChallengeCreated($user, $opponent));
     }
 
     /**
+     * Remove the challenge.
      *
+     * @param ChallengeService $challengeService
+     * @param Request $request
+     */
+    public function removeChallenge(Request $request, ChallengeService $challengeService)
+    {
+        $user     = auth()->user();
+        $opponent = $this->getOpponent($user, $request);
+
+        $challengeService->removeChallenge($user, $opponent);
+
+        event(new ChallengeRemoved($user, $opponent));
+    }
+
+    /**
+     * Get the opponent.
      *
      * @param User $user
      * @param Request $request
      * @return User
+     * @throws ValidationException
      */
     protected function getOpponent(User $user, Request $request): User
     {
@@ -117,5 +123,21 @@ class AppController extends Controller
         }
 
         return $opponent;
+    }
+
+    /**
+     * Start the match.
+     *
+     * @param Request $request
+     * @param MatchService $matchService
+     */
+    public function play(Request $request, MatchService $matchService)
+    {
+        $user     = auth()->user();
+        $opponent = $this->getOpponent($user, $request);
+
+        $match = $matchService->createMatch($user, $opponent);
+
+        event(new MatchCreated($user, $opponent, $match));
     }
 }

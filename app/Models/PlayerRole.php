@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PlayerSettings extends Model
+class PlayerRole extends Model
 {
     /**
      * Indicates if the model should be timestamped.
@@ -18,5 +18,5 @@ class PlayerSettings extends Model
      *
      * @var array
      */
-    protected $fillable = ['schema_id', 'settings'];
+    protected $fillable = ['player_id', 'role_id'];
 }

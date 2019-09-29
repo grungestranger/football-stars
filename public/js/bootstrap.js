@@ -57,17 +57,29 @@ window.hsc = function (string) {
 
 /***/ }),
 
+/***/ "./resources/sass/team.scss":
+/*!**********************************!*\
+  !*** ./resources/sass/team.scss ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+
 /***/ 0:
-/*!*************************************************************************************************************************!*\
-  !*** multi ./resources/js/bootstrap.js ./resources/sass/auth.scss ./resources/sass/app.scss ./resources/sass/main.scss ***!
-  \*************************************************************************************************************************/
+/*!****************************************************************************************************************************************************!*\
+  !*** multi ./resources/js/bootstrap.js ./resources/sass/auth.scss ./resources/sass/app.scss ./resources/sass/main.scss ./resources/sass/team.scss ***!
+  \****************************************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(/*! /home/vagrant/code/football-stars/resources/js/bootstrap.js */"./resources/js/bootstrap.js");
 __webpack_require__(/*! /home/vagrant/code/football-stars/resources/sass/auth.scss */"./resources/sass/auth.scss");
 __webpack_require__(/*! /home/vagrant/code/football-stars/resources/sass/app.scss */"./resources/sass/app.scss");
-module.exports = __webpack_require__(/*! /home/vagrant/code/football-stars/resources/sass/main.scss */"./resources/sass/main.scss");
+__webpack_require__(/*! /home/vagrant/code/football-stars/resources/sass/main.scss */"./resources/sass/main.scss");
+module.exports = __webpack_require__(/*! /home/vagrant/code/football-stars/resources/sass/team.scss */"./resources/sass/team.scss");
 
 
 /***/ })
