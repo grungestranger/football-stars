@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use JWTAuth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use App\Events\ChallengeCreated;
@@ -12,20 +12,22 @@ use App\Events\ChallengeRemoved;
 use App\Events\MatchCreated;
 use App\Services\ChallengeService;
 use App\Services\MatchService;
+use App\Services\UserService;
 
 class AppController extends Controller
 {
     /**
      * Get user list.
      *
+     * @param UserService $userService
      * @return JsonResponse
      */
-    public function getUsers(): JsonResponse
+    public function getUsers(UserService $userService): JsonResponse
     {
         $authUser = auth()->user();
         $users    = [];
 
-        foreach (User::getList() as $user) {
+        foreach ($userService->getList() as $user) {
             $canGetChallenge = $user->id != $authUser->id
                 && $authUser->fromChallenges->where('to_user_id', $user->id)->isEmpty()
                 && $authUser->toChallenges->where('from_user_id', $user->id)->isEmpty();
@@ -138,6 +140,6 @@ class AppController extends Controller
 
         $match = $matchService->createMatch($user, $opponent);
 
-        event(new MatchCreated($user, $opponent, $match));
+        event(new MatchCreated($match));
     }
 }

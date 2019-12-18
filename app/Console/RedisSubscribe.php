@@ -3,10 +3,11 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Redis;
+use Illuminate\Support\Facades\Redis;
 use App\Models\User;
 use App\Events\UserConnected;
 use App\Events\UserDisconnected;
+use App\Services\UserService;
 
 class RedisSubscribe extends Command
 {
@@ -26,19 +27,20 @@ class RedisSubscribe extends Command
 
     /**
      * Execute the console command.
+     *
+     * @param UserService $userService
      */
-    public function handle()
+    public function handle(UserService $userService)
     {
+        $userService->resetOnline();
+
         $redis = Redis::connection('subscribe');
 
-        $redis->subscribe('system', function ($message) {
+        $redis->subscribe(env('SYSTEM_CHANNEL'), function ($message) use ($userService) {
             $data = json_decode($message);
 
             if ($data && isset($data->event)) {
                 switch ($data->event) {
-                    case 'serverRestarted':
-                        User::resetOnline();
-                        break;
                     case 'userConnected':
                         if (isset($data->userId) && is_int($data->userId)) {
                             $user = User::find($data->userId);
@@ -49,6 +51,7 @@ class RedisSubscribe extends Command
                                 event(new UserConnected($user));
                             }
                         }
+
                         break;
                     case 'userDisconnected':
                         if (isset($data->userId) && is_int($data->userId)) {
@@ -60,6 +63,7 @@ class RedisSubscribe extends Command
                                 event(new UserDisconnected($user));
                             }
                         }
+
                         break;
                 }
             }

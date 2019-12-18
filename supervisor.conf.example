@@ -1,0 +1,24 @@
+[eventlistener:fs-group1-listener]
+command=python /path/to/project/supervisor_listener.py fs-group1
+events=PROCESS_STATE
+
+[group:fs-group1]
+programs=fs-redis-subscriber,fs-socket-io-server
+
+[program:fs-redis-subscriber]
+process_name=%(program_name)s
+command=php /path/to/project/artisan redis:subscribe
+autostart=true
+autorestart=true
+user=user
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/fs-redis-subscriber.log
+
+[program:fs-socket-io-server]
+process_name=%(program_name)s
+command=nodejs /path/to/project/server.js
+autostart=true
+autorestart=true
+user=user
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/fs-socket-io-server.log

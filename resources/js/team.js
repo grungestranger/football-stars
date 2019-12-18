@@ -5,35 +5,41 @@ $(function () {
     var fieldHeight = 600, fieldCoef = 0.5, margin = 10, roleAreas = [];
 
     function selectSettings(id) {
-        $.ajax({
-            url: '/team',
-            data: 'schema_id=' + id,
-            success: function(data) {
-                $.each(data.settings.settings, function(k, v){
-                    // only for selects yet
-                    $('#schemaForm [name="schema[settings][' + k + ']"] option[value="' + v + '"]').prop('selected', true);
-                });
-                $.each(data.players, function(k, v){
-                    var player = $('.player[data-id="' + v.id + '"]');
-                    if (v.settings.position) {
-                        player.show();
-                    } else {
-                        player.hide();
+        $.get('/team/get-schema/' + id, function (data) {
+            $.each(data.schema.settings, function (k, v) {
+                // Only for selects yet.
+                $('#schemaForm [name="schema[settings][' + k + ']"] option[value="' + v + '"]').prop('selected', true);
+            });
+
+            $.each(data.players, function (index, player) {
+                let $player = $('.player[data-id="' + player.id + '"]');
+
+                if (player.settings.position) {
+                    $player.show();
+                } else {
+                    $player.hide();
+                }
+
+                replaceRow(index, player.id);
+
+                $.each(player.settings, function (k, v) {
+                    if (v === null) {
+                        v = 'NULL';
+                    } else if (typeof(v) == 'object') {
+                        v = JSON.stringify(v);
                     }
-                    replaceRow(k, v.id);
-                    $.each(v.settings, function(k1, v1){
-                        if (v1 === null) {
-                            v1 = 'NULL';
-                        } else if (typeof(v1) == 'object') {
-                            v1 = JSON.stringify(v1);
-                        }
-                        $('#schemaForm [name="player_settings[' + v.id + '][' + k1 + ']"]').val(v1);
-                    });
+
+                    $('#schemaForm [name="player_settings[' + player.id + '][' + k + ']"]').val(v);
                 });
-                playersPositions();
-                $('#saveSchema').hide();
-            }
-        });
+            });
+
+            playersPositions();
+
+            $('#saveSchema').hide();
+        })
+            .fail(function (data) {
+
+            });
     }
 
     function replaceRow(index, id) {
@@ -76,7 +82,7 @@ $(function () {
     playersPositions();
 
     // Select Settings
-    $('#schemaForm [name="schema[id]"]').change(function(){
+    $('#schemaForm [name="schema[id]"]').change(function () {
         selectSettings($(this).val());
     });
 
@@ -166,7 +172,7 @@ $(function () {
         $(this).width($(this).width());
     });
     // fields for replace changes
-    var fields = ['position', 'reserveIndex'];
+    var fields = ['position', 'reserve_index'];
     // replace rows
     $('#players > tbody > tr').draggable({
         containment: 'parent',
@@ -257,26 +263,26 @@ $(function () {
         return false;
     });
 
-    // remove settings
+    /**
+     * Remove the schema.
+     */
+
     $('#removeSchema').click(function(){
-        var id = $('#schemaForm [name="schema[id]"]').val();
-        $.ajax({
-            type: 'POST',
-            url: '/team/remove',
-            data: 'schema_id=' + id,
-            success: function(data) {
-                if (data.success) {
-                    $('#schemaForm [name="schema[id]"] option[value="' + id + '"]').remove();
-                    selectSettings($('#schemaForm [name="schema[id]"]').val());
-                    if ($('#schemaForm [name="schema[id]"] option').length < 2) {
-                        $('#removeSchema').hide();
-                    }
-                    alert(data.message);
-                } else {
-                    alert(data.error);
-                }
+        let id = $('#schemaForm [name="schema[id]"]').val();
+
+        $.post('/team/remove-schema', {id: id}, function (data) {
+            $('#schemaForm [name="schema[id]"] option[value="' + id + '"]').remove();
+
+            selectSettings($('#schemaForm [name="schema[id]"]').val());
+
+            if ($('#schemaForm [name="schema[id]"] option').length < 2) {
+                $('#removeSchema').hide();
             }
-        });
+        })
+            .fail(function (data) {
+
+            });
+
         return false;
     });
 

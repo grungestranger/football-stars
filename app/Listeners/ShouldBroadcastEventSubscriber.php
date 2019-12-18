@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use Illuminate\Events\Dispatcher;
-use Redis;
+use Illuminate\Support\Facades\Redis;
 use App\Events\UserConnected;
 use App\Events\UserDisconnected;
 use App\Events\ChallengeCreated;
@@ -12,13 +12,28 @@ use App\Events\MatchCreated;
 
 class ShouldBroadcastEventSubscriber
 {
+    /** @var string */
+    protected $allChannel;
+
+    /** @var string */
+    protected $userChannelPrefix;
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->allChannel        = env('ALL_CHANNEL');
+        $this->userChannelPrefix = env('USER_CHANNEL_PREFIX');
+    }
+
     /**
      * Handle user connect events.
      *
      * @param UserConnected $event
      */
     public function onUserConnected(UserConnected $event) {
-        Redis::publish('all', json_encode([
+        Redis::publish($this->allChannel, json_encode([
             'event'  => 'userConnected',
             'userId' => $event->user->id,
         ]));
@@ -30,7 +45,7 @@ class ShouldBroadcastEventSubscriber
      * @param UserDisconnected $event
      */
     public function onUserDisconnected(UserDisconnected $event) {
-        Redis::publish('all', json_encode([
+        Redis::publish($this->allChannel, json_encode([
             'event'  => 'userDisconnected',
             'userId' => $event->user->id,
         ]));
@@ -43,14 +58,14 @@ class ShouldBroadcastEventSubscriber
      */
     public function onChallengeCreated(ChallengeCreated $event) {
         if ($event->user->is_man) {
-            Redis::publish('user:' . $event->user->id, json_encode([
+            Redis::publish($this->userChannelPrefix . $event->user->id, json_encode([
                 'event' => 'fromChallengeCreated',
                 'user'  => $event->opponent,
             ]));
         }
 
         if ($event->opponent->is_man) {
-            Redis::publish('user:' . $event->opponent->id, json_encode([
+            Redis::publish($this->userChannelPrefix . $event->opponent->id, json_encode([
                 'event' => 'toChallengeCreated',
                 'user'  => $event->user,
             ]));
@@ -64,14 +79,14 @@ class ShouldBroadcastEventSubscriber
      */
     public function onChallengeRemoved(ChallengeRemoved $event) {
         if ($event->user->is_man) {
-            Redis::publish('user:' . $event->user->id, json_encode([
+            Redis::publish($this->userChannelPrefix . $event->user->id, json_encode([
                 'event'  => 'challengeRemoved',
                 'userId' => $event->opponent->id,
             ]));
         }
 
         if ($event->opponent->is_man) {
-            Redis::publish('user:' . $event->opponent->id, json_encode([
+            Redis::publish($this->userChannelPrefix . $event->opponent->id, json_encode([
                 'event'  => 'challengeRemoved',
                 'userId' => $event->user->id,
             ]));
@@ -84,7 +99,27 @@ class ShouldBroadcastEventSubscriber
      * @param MatchCreated $event
      */
     public function onMatchCreated(MatchCreated $event) {
-        // todo
+        $user1 = $event->match->user1;
+        $user2 = $event->match->user2;
+
+        Redis::publish($this->allChannel, json_encode([
+            'event'   => 'matchStarted',
+            'userIds' => [$user1->id, $user2->id],
+        ]));
+
+        if ($user1->is_man) {
+            Redis::publish($this->userChannelPrefix . $user1->id, json_encode([
+                'event'  => 'myMatchStarted',
+                'userId' => $user2->id,
+            ]));
+        }
+
+        if ($user2->is_man) {
+            Redis::publish($this->userChannelPrefix . $user2->id, json_encode([
+                'event'  => 'myMatchStarted',
+                'userId' => $user1->id,
+            ]));
+        }
     }
 
     /**

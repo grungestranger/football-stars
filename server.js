@@ -1,15 +1,22 @@
 const env = require('dotenv').config({path: __dirname + '/.env'}).parsed,
-    io = require('socket.io')(env.SOCKET_IO_PORT),
+    app = require('express')(),
+    http = require('http').createServer(app).listen(env.SOCKET_IO_HTTP_PORT),
+    io = require('socket.io')(http),
     jwt = require('jsonwebtoken'),
     redis = require('redis'),
     publisher = redis.createClient(),
     users = {};
 
-/**
- * Clear online after start of server.
- */
+if (env.HTTPS_CERT_PATH && env.HTTPS_KEY_PATH && env.SOCKET_IO_HTTPS_PORT) {
+    const fs = require('fs'),
+        https = require('https').createServer({
+            cert: fs.readFileSync(env.HTTPS_CERT_PATH),
+            key: fs.readFileSync(env.HTTPS_KEY_PATH),
+        }, app)
+            .listen(env.SOCKET_IO_HTTPS_PORT);
 
-publisher.publish('system', JSON.stringify({event: 'serverRestarted'}));
+    io.attach(https);
+}
 
 /**
  * Connect to a new socket.
@@ -85,7 +92,7 @@ function connectUser(socket) {
     let userId = socket.user.id,
         subscriber = redis.createClient();
 
-    subscriber.subscribe(['user:' + userId, 'all']);
+    subscriber.subscribe([env.USER_CHANNEL_PREFIX + userId, env.ALL_CHANNEL]);
     subscriber.on('message', function (channel, data) {
         socket.emit('message', data);
     });
@@ -97,7 +104,7 @@ function connectUser(socket) {
     users[userId].connectionsCount++;
 
     if (users[userId].connectionsCount == 1) {
-        publisher.publish('system', JSON.stringify({
+        publisher.publish(env.SYSTEM_CHANNEL, JSON.stringify({
             event: 'userConnected',
             userId: userId,
         }));
@@ -120,7 +127,7 @@ function disconnectUser(socket) {
     users[userId].connectionsCount--;
 
     if (users[userId].connectionsCount == 0) {
-        publisher.publish('system', JSON.stringify({
+        publisher.publish(env.SYSTEM_CHANNEL, JSON.stringify({
             event: 'userDisconnected',
             userId: userId,
         }));

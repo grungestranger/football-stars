@@ -61,12 +61,14 @@ window.socketHandlers = [
         events: ['userConnected'],
         handler: function (data) {
             $('.user[data-id="' + data.userId + '"]').addClass('online');
+            $('#toChallenges .user[data-id="' + data.userId + '"]').children('.play').show();
         },
     },
     {
         events: ['userDisconnected'],
         handler: function (data) {
             $('.user[data-id="' + data.userId + '"]').removeClass('online');
+            $('#toChallenges .user[data-id="' + data.userId + '"]').children('.play').hide();
         },
     },
     {
@@ -122,6 +124,25 @@ window.socketHandlers = [
             $('#toChallenges .user[data-id="' + data.userId + '"]').remove();
         },
     },
+    {
+        events: ['matchStarted'],
+        handler: function (data) {
+            $.each(data.userIds, function (k, v) {
+                $('.user[data-id="' + v + '"]').addClass('match');
+                $('#toChallenges .user[data-id="' + data.userId + '"]').children('.play').hide();
+            });
+        },
+    },
+    {
+        events: ['myMatchStarted'],
+        handler: function (data) {
+            $('#toChallenges .user .play').hide();
+
+            let $opponent = $('#toChallenges .user[data-id="' + data.userId + '"]');
+
+            $('#myMatchStarted').show();
+        },
+    },
 ];
 
 let completeDataLoadsCount = 0,
@@ -159,7 +180,8 @@ function completeDataLoad(jqXHR, textStatus) {
  * Connect to server.
  */
 
-const socketIo = io.connect('//' + window.location.hostname + ':' + process.env.MIX_SOCKET_IO_PORT);
+const socketIoPort = window.location.protocol == 'https:' ? process.env.MIX_SOCKET_IO_HTTPS_PORT : process.env.MIX_SOCKET_IO_HTTP_PORT,
+    socketIo = io.connect('//' + window.location.hostname + ':' + socketIoPort);
 
 socketIo.on('tokenRequest', function () {
     let token = $('meta[name="jwt"]').attr('content');
@@ -197,7 +219,9 @@ $(function () {
      * Close popup window.
      */
 
-    $('.popup').click(function () {
+    $('.popup').click(function (event) {
+        event.stopPropagation();
+
         $(this).hide();
     });
 

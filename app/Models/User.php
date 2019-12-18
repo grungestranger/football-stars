@@ -2,14 +2,69 @@
 
 namespace App\Models;
 
+use Eloquent;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Collection;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
+use Exception;
 
+/**
+ * App\Models\User
+ *
+ * @property int $id
+ * @property string $type
+ * @property string $name
+ * @property string $email
+ * @property string|null $email_verified_at
+ * @property string $password
+ * @property string|null $remember_token
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property int $online
+ * @property Carbon|null $last_online_at
+ * @property int|null $last_schema_id
+ * @property-read Collection|Challenge[] $fromChallenges
+ * @property-read int|null $from_challenges_count
+ * @property-read Schema $current_schema
+ * @property-read bool $is_man
+ * @property-read bool $is_match
+ * @property-read Match|null $match
+ * @property-read User|null $match_opponent
+ * @property-read Collection|Match[] $match1
+ * @property-read int|null $match1_count
+ * @property-read Collection|Match[] $match2
+ * @property-read int|null $match2_count
+ * @property-read DatabaseNotificationCollection|DatabaseNotification[] $notifications
+ * @property-read int|null $notifications_count
+ * @property-read Collection|Player[] $players
+ * @property-read int|null $players_count
+ * @property-read Collection|Schema[] $schemas
+ * @property-read int|null $schemas_count
+ * @property-read Collection|Challenge[] $toChallenges
+ * @property-read int|null $to_challenges_count
+ * @method static Builder|User newModelQuery()
+ * @method static Builder|User newQuery()
+ * @method static Builder|User query()
+ * @method static Builder|User whereCreatedAt($value)
+ * @method static Builder|User whereEmail($value)
+ * @method static Builder|User whereEmailVerifiedAt($value)
+ * @method static Builder|User whereId($value)
+ * @method static Builder|User whereLastOnlineAt($value)
+ * @method static Builder|User whereLastSchemaId($value)
+ * @method static Builder|User whereName($value)
+ * @method static Builder|User whereOnline($value)
+ * @method static Builder|User wherePassword($value)
+ * @method static Builder|User whereRememberToken($value)
+ * @method static Builder|User whereType($value)
+ * @method static Builder|User whereUpdatedAt($value)
+ * @mixin Eloquent
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
@@ -39,6 +94,13 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $appends = ['is_match'];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = ['last_online_at'];
 
     /**
      * The "booting" method of the model.
@@ -99,16 +161,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get all users with match relations.
-     *
-     * @return Collection
-     */
-    public static function getList(): Collection
-    {
-        return static::with(['match1', 'match2'])->get();
-    }
-
-    /**
      * Get the relation to matches by field user1_id.
      *
      * @return HasMany
@@ -163,27 +215,27 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return Schema|null
+     *
+     *
+     * @return Schema
+     * @throws Exception
      */
-    public function getCurrentSchemaAttribute(): ?Schema
+    public function getCurrentSchemaAttribute(): Schema
     {
         if ($this->last_schema_id) {
             $schema = $this->schemas()->find($this->last_schema_id);
-
-            if ($schema) {
-                return $schema;
-            }
         }
 
-        return $this->schemas()->first();
-    }
+        if (empty($schema)) {
+            $schema = $this->schemas()->first();
+        }
 
-    /**
-     * Set the field "onine" to "0" for all users with type "man".
-     */
-    public static function resetOnline()
-    {
-        static::where([['type', static::TYPE_MAN], ['online', '!=', 0]])->update(['online' => 0]);
+        if (!$schema) {
+            throw new Exception('User don\'t have schema');
+        }
+
+        /** @var Schema $schema */
+        return $schema;
     }
 
     /**
@@ -202,7 +254,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function unsetOnline()
     {
         $this->online         = 0;
-        $this->last_online_at = Carbon::now()->toDateTimeString();
+        $this->last_online_at = $this->freshTimestamp();
+
+        $this->save();
+    }
+
+    /**
+     * @param int $schemaId
+     */
+    public function setLastSchemaId(int $schemaId)
+    {
+        $this->last_schema_id = $schemaId;
 
         $this->save();
     }

@@ -13,7 +13,7 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Scripts -->
-    <script src="{{ url('//' . Request::server('HTTP_HOST') . ':' . env('SOCKET_IO_PORT') . '/socket.io/socket.io.js') }}"></script>
+    <script src="{{ url('//' . Request::server('HTTP_HOST') . ':' . (Request::isSecure() ? env('SOCKET_IO_HTTPS_PORT') : env('SOCKET_IO_HTTP_PORT')) . '/socket.io/socket.io.js') }}"></script>
     <script src="{{ mix('js/manifest.js') }}"></script>
     <script src="{{ mix('js/vendor.js') }}"></script>
     <script src="{{ mix('js/app.js') }}"></script>
@@ -26,11 +26,20 @@
 <body>
     <a href="{{ url('/') }}">{{ config('app.name', 'Laravel') }}</a>
 
-    {{ Auth::user()->name }}
-    <form id="logout-form" action="{{ route('logout') }}" method="POST">
+    {{ auth()->user()->name }}
+    <form id="logoutForm" action="{{ route('logout') }}" method="POST">
         @csrf
         <input type="submit" value="{{ __('Logout') }}">
     </form>
+
+    <ul id="menu">
+        <li>
+            <a href="{{ route('team') }}">{{ __('team') }}</a>
+        </li>
+        <li id="matchMenuItem" {!! auth()->user()->is_match ? '' : 'class="display-none"' !!}>
+            <a href="{{ route('match') }}">{{ __('match VS ') }}</a>
+        </li>
+    </ul>
 
     <div id="fromChallenges">
     </div>
@@ -38,6 +47,10 @@
     </div>
 
     @yield('content')
+
+    <div class="popup" id="myMatchStarted">
+        <div class="popup-content"></div>
+    </div>
 
     <div id="stdElements">
         <div data-id="" class="user">

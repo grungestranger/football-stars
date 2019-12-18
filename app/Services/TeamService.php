@@ -119,7 +119,22 @@ class TeamService
         foreach ($players as $player) {
             $player->settings = $player->playerSchemas->first()->settings;
             $player->roles    = collect(config('player.roles'))->only($player->playerRoles->pluck('role_id'));
+
+            unset($player->playerSchemas, $player->playerRoles);
         }
+
+        return $this->sortPlayers($players);
+    }
+
+    /**
+     *
+     *
+     * @param Schema $schema
+     * @return Collection
+     */
+    public function getPlayersBySchema(Schema $schema): Collection
+    {
+        $players = $schema->playerSchemas()->select('player_id AS id', 'settings')->get();
 
         return $this->sortPlayers($players);
     }
@@ -239,24 +254,30 @@ class TeamService
      * Save the schema and players' settings.
      *
      * @param User $user
-     * @param array $schema
+     * @param int $schemaId
+     * @param array $schemaSettings
      * @param array $playerSettings
+     * @throws ValidationException
      */
-    public function saveSchema(User $user, array $schema, array $playerSettings)
+    public function saveSchema(User $user, int $schemaId, array $schemaSettings, array $playerSettings)
     {
-        $this->validateSchemaSettings($schema['settings']);
+        $schema = $user->schemas()->find($schemaId);
+
+        if (!$schema) {
+            throw ValidationException::withMessages([trans('team.schema_not_exist')]);
+        }
+
+        $this->validateSchemaSettings($schemaSettings);
         $this->validatePlayerSettings($playerSettings);
 
         $playerSettings = $this->getPreparedToSavePlayerSettings($playerSettings);
 
-        DB::transaction(function () use ($user, $schema, $playerSettings) {
-            $schemaId = (int) $schema['id'];
-
-            $user->schemas()->where('id', $schemaId)->update(['settings' => json_encode($schema['settings'])]);
+        DB::transaction(function () use ($user, $schema, $schemaSettings, $playerSettings) {
+            $schema->update(['settings' => $schemaSettings]);
 
             foreach ($playerSettings as $playerId => $settings) {
                 PlayerSchema::where([
-                    ['schema_id', $schemaId],
+                    ['schema_id', $schema->id],
                     ['player_id', $playerId],
                 ])->update(['settings' => $settings]);
             }
@@ -267,28 +288,34 @@ class TeamService
      * Create a scheme and its corresponding players' settings.
      *
      * @param User $user
-     * @param array $schema
+     * @param string $schemaName
+     * @param array $schemaSettings
      * @param array $playerSettings
      * @return Schema
+     * @throws ValidationException
      */
-    public function createSchema(User $user, array $schema, array $playerSettings): Schema
+    public function createSchema(User $user, string $schemaName, array $schemaSettings, array $playerSettings): Schema
     {
-        $this->validateSchemaSettings($schema['settings']);
+        if ($user->schemas()->where('name', $schemaName)->exists()) {
+            throw ValidationException::withMessages([trans('team.duplicate_schema_name')]);
+        }
+
+        $this->validateSchemaSettings($schemaSettings);
         $this->validatePlayerSettings($playerSettings);
 
         $playerSettings = $this->getPreparedToSavePlayerSettings($playerSettings);
 
-        DB::transaction(function () use ($user, $schema, $playerSettings, &$createdSchema) {
-            $createdSchema = $user->schemas()->create([
-                'name'     => $schema['name'],
-                'settings' => $schema['settings'],
+        DB::transaction(function () use ($user, $schemaName, $schemaSettings, $playerSettings, &$schema) {
+            $schema = $user->schemas()->create([
+                'name'     => $schemaName,
+                'settings' => $schemaSettings,
             ]);
 
             $set = [];
 
             foreach ($playerSettings as $playerId => $settings) {
                 $set[] = [
-                    'schema_id' => $createdSchema->id,
+                    'schema_id' => $schema->id,
                     'player_id' => $playerId,
                     'settings'  => $settings,
                 ];
@@ -297,6 +324,30 @@ class TeamService
             PlayerSchema::insert($set);
         });
 
-        return $createdSchema;
+        return $schema;
+    }
+
+    /**
+     * Remove user's schema.
+     *
+     * @param User $user
+     * @param int $schemaId
+     * @throws ValidationException
+     */
+    public function removeSchema(User $user, int $schemaId)
+    {
+        $schema = $user->schemas()->find($schemaId);
+
+        if (!$schema) {
+            throw ValidationException::withMessages([trans('team.schema_not_exist')]);
+        }
+
+        lockForUpdate(function () use ($user, $schema) {
+            if ($user->schemas()->count() < 2) {
+                throw ValidationException::withMessages([trans('team.remove_last_schema')]);
+            }
+
+            $schema->delete();
+        }, $user);
     }
 }

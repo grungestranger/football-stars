@@ -11,32 +11,63 @@ use App\Services\TeamService;
 class TeamController extends Controller
 {
     /**
-     * Show team controls dashboard.
+     * @var TeamService
+     */
+    protected $teamService;
+
+    /**
+     * Constructor.
      *
      * @param TeamService $teamService
+     */
+    public function __construct(TeamService $teamService)
+    {
+        $this->teamService = $teamService;
+    }
+
+    /**
+     * Show team controls dashboard.
+     *
      * @return View
      */
-    public function index(TeamService $teamService): View
+    public function index(): View
     {
         $user = auth()->user();
 
         $data = [
             'currentSchema' => $user->current_schema,
-            'players'       => $teamService->getTeam($user),
+            'players'       => $this->teamService->getTeam($user),
             'schemas'       => $user->schemas,
         ];
 
         return view('team', $data);
     }
 
+    public function getSchema($id): JsonResponse
+    {
+        $user = auth()->user();
+
+        $schema = $user->schemas()->find((int) $id);
+
+        if (!$schema) {
+            throw ValidationException::withMessages([trans('team.schema_not_exist')]);
+        }
+
+        $user->setLastSchemaId($schema->id);
+
+        return response()->json([
+            'schema'  => $schema,
+            'players' => $this->teamService->getPlayersBySchema($schema),
+        ]);
+    }
+
     /**
      * Save the schema.
      *
      * @param Request $request
-     * @param TeamService $teamService
      * @throws ValidationException
      */
-    public function saveSchema(Request $request, TeamService $teamService)
+    public function saveSchema(Request $request)
     {
         $user = auth()->user();
 
@@ -49,22 +80,17 @@ class TeamController extends Controller
             throw ValidationException::withMessages([trans('common.wrong_data')]);
         }
 
-        if (!$user->schemas()->where('id', $schema['id'])->exists()) {
-            throw ValidationException::withMessages([trans('team.schema_not_exist')]);
-        }
-
-        $teamService->saveSchema($user, $schema, $playerSettings);
+        $this->teamService->saveSchema($user, (int) $schema['id'], $schema['settings'], $playerSettings);
     }
 
     /**
      * Create a schema.
      *
      * @param Request $request
-     * @param TeamService $teamService
      * @return JsonResponse
      * @throws ValidationException
      */
-    public function createSchema(Request $request, TeamService $teamService): JsonResponse
+    public function createSchema(Request $request): JsonResponse
     {
         $user = auth()->user();
 
@@ -77,15 +103,31 @@ class TeamController extends Controller
             throw ValidationException::withMessages([trans('common.wrong_data')]);
         }
 
-        if ($user->schemas()->where('name', $schema['name'])->exists()) {
-            throw ValidationException::withMessages([trans('team.duplicate_schema_name')]);
-        }
+        $schema = $this->teamService->createSchema($user, $schema['name'], $schema['settings'], $playerSettings);
 
-        $schema = $teamService->createSchema($user, $schema, $playerSettings);
+        $user->setLastSchemaId($schema->id);
 
         unset($schema->settings);
 
         return response()->json(['schema' => $schema]);
+    }
+
+    /**
+     * Remove the schema.
+     *
+     * @param Request $request
+     * @throws ValidationException
+     */
+    public function removeSchema(Request $request)
+    {
+        $user     = auth()->user();
+        $schemaId = (int) $request->input('id');
+
+        if (!$schemaId) {
+            throw ValidationException::withMessages([trans('common.wrong_data')]);
+        }
+
+        $this->teamService->removeSchema($user, $schemaId);
     }
 
     /**
