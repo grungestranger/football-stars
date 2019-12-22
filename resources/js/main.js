@@ -36,6 +36,19 @@ dataLoaders.push({
  */
 
 socketHandlers.push({
+    events: ['userVerified'],
+    handler: function (data) {
+        let $user = $('#stdElements .user').clone().appendTo('#users');
+
+        $user.attr('data-id', data.user.id);
+        $user.children('.name').html(hsc(data.user.name));
+
+        $user.children('.play').hide();
+        $user.children('.remove-challenge').hide();
+    },
+});
+
+socketHandlers.push({
     events: ['fromChallengeCreated', 'toChallengeCreated'],
     handler: function (data) {
         $('#users .user[data-id="' + data.user.id + '"] .create-challenge').hide();

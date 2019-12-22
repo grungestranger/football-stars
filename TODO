@@ -1,3 +1,5 @@
 ? Add id to challenges table. Use it in removeChallenge, createMatch.
 
 ? Use $this->validate() in TeamController.
+
+Disable buttons (create challenge, remove challenge, ...) after first click, to prevent unnecessary requests.

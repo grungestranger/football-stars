@@ -47,6 +47,8 @@ window.dataLoaders = [
                 } else {
                     $user.children('.play').hide();
                 }
+
+                // todo $user.children('.play').hide() if current user is playing
             });
         },
     },
@@ -74,7 +76,7 @@ window.socketHandlers = [
     {
         events: ['fromChallengeCreated'],
         handler: function (data) {
-            if (!$('#fromChallenges .user[data-id="' + data.user.id + '"]').length) {
+            if (!$('#fromChallenges .user[data-id="' + data.user.id + '"]').length) { // todo check it
                 let $user = $('#stdElements .user').clone().appendTo('#fromChallenges');
 
                 $user.attr('data-id', data.user.id);
@@ -96,7 +98,7 @@ window.socketHandlers = [
     {
         events: ['toChallengeCreated'],
         handler: function (data) {
-            if (!$('#toChallenges .user[data-id="' + data.user.id + '"]').length) {
+            if (!$('#toChallenges .user[data-id="' + data.user.id + '"]').length) { // todo check it
                 let $user = $('#stdElements .user').clone().appendTo('#toChallenges');
 
                 $user.attr('data-id', data.user.id);
@@ -114,6 +116,8 @@ window.socketHandlers = [
                 } else {
                     $user.children('.play').hide();
                 }
+
+                // todo $user.children('.play').hide() if current user is playing
             }
         },
     },
@@ -138,9 +142,13 @@ window.socketHandlers = [
         handler: function (data) {
             $('#toChallenges .user .play').hide();
 
-            let $opponent = $('#toChallenges .user[data-id="' + data.userId + '"]');
+            $('#fromChallenges .user[data-id="' + data.user.id + '"]').remove();
+            $('#toChallenges .user[data-id="' + data.user.id + '"]').remove();
 
-            $('#myMatchStarted').show();
+            $('#myMatchStarted > div').append(hsc(data.user.name));
+            $('#matchMenuItem > a').append(hsc(data.user.name));
+
+            $('#matchMenuItem, #myMatchStarted').show();
         },
     },
 ];

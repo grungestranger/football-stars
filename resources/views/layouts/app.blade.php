@@ -37,7 +37,7 @@
             <a href="{{ route('team') }}">{{ __('team') }}</a>
         </li>
         <li id="matchMenuItem" {!! auth()->user()->is_match ? '' : 'class="display-none"' !!}>
-            <a href="{{ route('match') }}">{{ __('match VS ') }}</a>
+            <a href="{{ route('match') }}">{{ __('match VS ') . (auth()->user()->match_opponent->name ?? '') }}</a>
         </li>
     </ul>
 
@@ -49,7 +49,7 @@
     @yield('content')
 
     <div class="popup" id="myMatchStarted">
-        <div class="popup-content"></div>
+        <div class="popup-content">{{ __('match VS ') }}</div>
     </div>
 
     <div id="stdElements">
