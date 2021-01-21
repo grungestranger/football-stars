@@ -27,6 +27,6 @@
         "https": "^1.0.0",
         "jsonwebtoken": "^8.4.0",
         "redis": "^2.8.0",
-        "socket.io": "^2.3.0"
+        "socket.io": "^2.4.0"
     }
 }
